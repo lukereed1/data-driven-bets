@@ -1,16 +1,30 @@
-# This is a sample Python script.
+import requests
+from datetime import datetime
+from bs4 import BeautifulSoup
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+date = "2023-12-15"
+
+url = f"https://fbref.com/en/matches/{date}"
+response = requests.get(url)
+
+soup = BeautifulSoup(response.content, "html.parser")
+
+league_id = 9
+
+games_rows = soup.find("div", id=f"all_sched_2023-2024_{league_id}")\
+            .find_all("tr")
+
+for game in games_rows:
+    h = game.find("td", {"data-stat": "home_team"})
+    a = game.find("td", {"data-stat": "away_team"})
+
+    if h and a:
+        home_team = h.find("a").get_text()
+        away_team = a.find("a").get_text()
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+        print(home_team)
+        print(away_team)
 
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
