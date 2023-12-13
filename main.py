@@ -1,15 +1,12 @@
-import requests
-from datetime import datetime
-from bs4 import BeautifulSoup
-from util import team_name_map
+from util import team_name_map, get_soup
 import json
+from models.game import Game
 
 
-# league id is referencing the id's on fbref
+# Finds all games for a given date and league
 def find_games(league_id, date):
     url = f"https://fbref.com/en/matches/{date}"
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, "html.parser")
+    soup = get_soup(url)
     league_games = soup.find("div", id=f"all_sched_2023-2024_{league_id}").find_all("tr")
 
     games = []
@@ -20,12 +17,14 @@ def find_games(league_id, date):
         if h and a:
             home_team = h.find("a").get_text()
             away_team = a.find("a").get_text()
-            games.append({"home_team": team_name_map(home_team), "away_team": team_name_map(away_team)})
+            game = Game(home_team=home_team, away_team=away_team, date=date)
+            games.append(game)
 
     return games
 
 
 def find_lineups(games):
+
     for game in games:
         game["players"] = ["Luke Reed", "John Doe", "testing 123"]
 
@@ -35,9 +34,9 @@ def find_lineups(games):
 daily_games = find_games(9, "2023-12-15")
 
 
-daily_games = find_lineups(daily_games)
 
+json = json.dumps(daily_games, indent=2, default=lambda obj: obj.__dict__)
 
-print(json.dumps(daily_games, indent=2))
+print(json)
 
 
