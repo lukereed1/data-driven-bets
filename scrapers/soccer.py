@@ -55,25 +55,41 @@ def find_lineups(games):
 
 def find_teams_xg(games):
     for game in games:
+        # ---- Home Team xG Scrape and Calcs ----#
         home_url = get_team_stats_url(game.home_team.name)
-        away_url = get_team_stats_url(game.away_team.name)
-
-        home_lineup = [s.strip() for s in game.home_team.lineup]
-        away_lineup = [s.strip() for s in game.away_team.lineup]
-
         soup = get_soup(home_url)
-
+        home_lineup = [s.strip() for s in game.home_team.lineup]
         stat_table_rows = soup.find("tbody").find_all("tr")
 
-        print(home_lineup)
+        home_total_xg = 0
         for row in stat_table_rows:
             player = row.find("th", {"data-stat": "player"}).get_text().split()[-1]
+            players_names = player.split()
+            first_name, last_name = players_names[0], players_names[-1]
 
-            if player in home_lineup:
-                print(player)
+            if any(first_name in name or last_name in name for name in home_lineup):
+                player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
+                home_total_xg += float(player_xg)
 
+        game.home_team.set_total_xg(home_total_xg)
 
+        # ---- Away Team xG Scrape and Calcs ----#
+        away_url = get_team_stats_url(game.away_team.name)
+        soup = get_soup(away_url)
+        away_lineup = [s.strip() for s in game.away_team.lineup]
+        stat_table_rows = soup.find("tbody").find_all("tr")
 
+        away_total_xg = 0
+        for row in stat_table_rows:
+            player = row.find("th", {"data-stat": "player"}).get_text()
+            players_names = player.split()
+            first_name, last_name = players_names[0], players_names[-1]
 
+            if any(first_name in name or last_name in name for name in away_lineup):
+                player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
+                away_total_xg += float(player_xg)
 
+        game.away_team.set_total_xg(away_total_xg)
+
+    return games
 

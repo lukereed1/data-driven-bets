@@ -3,7 +3,7 @@ class Team:
         self.name = name
         self.lineup = []
         self.lineup_date = None
-        self.total_xG = 0
+        self.total_xg = 0
 
-    def set_total_xg(self):
-        print("test")
+    def set_total_xg(self, xg):
+        self.total_xg = xg

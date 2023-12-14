@@ -1,5 +1,5 @@
 from scrapers.soccer import find_games, find_lineups, find_teams_xg
-from util import get_team_stats_url
+from util import serialize
 import json
 
 daily_games = find_games(9, "2023-12-15")
