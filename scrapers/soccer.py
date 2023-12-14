@@ -1,4 +1,4 @@
-from util import team_name_map, get_soup, get_team_stats_url, serialize
+from util import team_name_map, get_soup, team_stats_page
 from models.game import Game
 from unidecode import unidecode
 import json
@@ -57,8 +57,8 @@ def find_lineups(games):
 
 def find_teams_stats(games):
     for game in games:
-        # ---- Home Team xG Scrape and Calcs ----#
-        home_url = get_team_stats_url(game.home_team.name)
+        # Home
+        home_url = team_stats_page(game.home_team.name)
         soup = get_soup(home_url)
         home_lineup = [s.strip() for s in game.home_team.lineup]
         stat_table_rows = soup.find("tbody").find_all("tr")
@@ -66,8 +66,8 @@ def find_teams_stats(games):
         home_total_xg = find_team_xg_per_90(stat_table_rows, home_lineup)
         game.home_team.set_total_xg(home_total_xg)
 
-        # ---- Away Team xG Scrape and Calcs ----#
-        away_url = get_team_stats_url(game.away_team.name)
+        # Away
+        away_url = team_stats_page(game.away_team.name)
         soup = get_soup(away_url)
         away_lineup = [s.strip() for s in game.away_team.lineup]
         stat_table_rows = soup.find("tbody").find_all("tr")
@@ -89,3 +89,6 @@ def find_team_xg_per_90(table, lineup):
             player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
             total_xg += float(player_xg)
     return round(total_xg, 2)
+
+
+# def find_team_xg_against_per_90(table, lineup):
