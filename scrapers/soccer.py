@@ -1,5 +1,7 @@
 from util import team_name_map, get_soup
 from models.game import Game
+from models.player import Player
+
 import json
 
 
@@ -26,17 +28,20 @@ def find_lineups(games):
     soup = get_soup(url)
 
     for game in games:
-        home_formation_div = soup.find(text=game.home_team).find_parent().find_parent().find_parent().find_next_sibling()
-        away_formation_div = soup.find(text=game.away_team).find_parent().find_parent().find_parent().find_next_sibling()
+        home_formation_div = (soup.find(text=game.home_team.name)
+                              .find_parent().find_parent().find_parent().find_next_sibling())
+
+        away_formation_div = (soup.find(text=game.away_team.name)
+                              .find_parent().find_parent().find_parent().find_next_sibling())
 
         if home_formation_div and away_formation_div:
             home_lineup = home_formation_div.find_all("li")
             away_lineup = away_formation_div.find_all("li")
 
             for player in home_lineup:
-                game.home_lineup.append(player.get_text())
+                game.home_team.lineup.append(Player(player.get_text()))
 
             for player in away_lineup:
-                game.away_lineup.append(player.get_text())
+                game.away_team.lineup.append(Player(player.get_text()))
 
     return games
