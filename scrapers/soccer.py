@@ -14,11 +14,13 @@ def find_games(league_id, date):
     for game in league_games:
         home = game.find("td", {"data-stat": "home_team"})
         away = game.find("td", {"data-stat": "away_team"})
+        time = game.find("td", {"data-stat": "start_time"})
 
         if home and away:
             home_team = home.find("a").get_text()
             away_team = away.find("a").get_text()
-            game = Game(home_team=home_team, away_team=away_team, date=date)
+            start_time = time.find("span", {"class": "venuetime"}).get_text()
+            game = Game(home_team=home_team, away_team=away_team, date=date, time=start_time)
             games.append(game)
 
     return games
@@ -71,7 +73,7 @@ def find_teams_xg(games):
                 player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
                 home_total_xg += float(player_xg)
 
-        game.home_team.set_total_xg(home_total_xg)
+        game.home_team.set_total_xg(round(home_total_xg, 2))
 
         # ---- Away Team xG Scrape and Calcs ----#
         away_url = get_team_stats_url(game.away_team.name)
@@ -89,7 +91,7 @@ def find_teams_xg(games):
                 player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
                 away_total_xg += float(player_xg)
 
-        game.away_team.set_total_xg(away_total_xg)
+        game.away_team.set_total_xg(round(away_total_xg, 2))
 
     return games
 
