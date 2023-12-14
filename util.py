@@ -1,10 +1,15 @@
 import requests
+import json
 from bs4 import BeautifulSoup
 
 
 def get_soup(url):
     response = requests.get(url)
     return BeautifulSoup(response.content, "html.parser")
+
+
+def serialize(self):
+    print(json.dumps(self, indent=2, default=lambda obj: obj.__dict__))
 
 
 def team_name_map(name):
@@ -19,4 +24,4 @@ def get_team_stats_url(team_name):
     url = "https://fbref.com/en/comps/9/Premier-League-Stats"
     soup = get_soup(url)
     link = soup.find(text=team_name).find_parent().get("href")
-    return f"fbref.com{link}"
+    return f"https://www.fbref.com{link}"

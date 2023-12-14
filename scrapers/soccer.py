@@ -1,7 +1,6 @@
-from util import team_name_map, get_soup
+from util import team_name_map, get_soup, get_team_stats_url, serialize
 from models.game import Game
-from models.player import Player
-
+from unidecode import unidecode
 import json
 
 
@@ -46,12 +45,33 @@ def find_lineups(games):
 
             # Appends players to team lineup
             for player in home_lineup:
-                game.home_team.lineup.append(Player(player.get_text()))
+                game.home_team.lineup.append(unidecode(player.get_text()))
 
             for player in away_lineup:
-                game.away_team.lineup.append(Player(player.get_text()))
+                game.away_team.lineup.append(unidecode(player.get_text()))
 
     return games
+
+
+def find_teams_xg(games):
+    for game in games:
+        home_url = get_team_stats_url(game.home_team.name)
+        away_url = get_team_stats_url(game.away_team.name)
+
+        home_lineup = [s.strip() for s in game.home_team.lineup]
+        away_lineup = [s.strip() for s in game.away_team.lineup]
+
+        soup = get_soup(home_url)
+
+        stat_table_rows = soup.find("tbody").find_all("tr")
+
+        print(home_lineup)
+        for row in stat_table_rows:
+            player = row.find("th", {"data-stat": "player"}).get_text().split()[-1]
+
+            if player in home_lineup:
+                print(player)
+
 
 
 
