@@ -10,7 +10,7 @@ def get_soup(url):
 def team_name_map(name):
     teams = {
         "Nott'ham Forest": "Nottingham Forest",
-        "Tottenham" : "Tottenham Hotspur"
+        "Tottenham": "Tottenham Hotspur"
     }
 
     return teams.get(name)
