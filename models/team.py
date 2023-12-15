@@ -6,6 +6,9 @@ class Team:
         self.total_xg = 0
         self.total_xg_against = 0
 
+    def get_team_name(self):
+        return self.name
+
     def set_total_xg(self, xg):
         self.total_xg = xg
 

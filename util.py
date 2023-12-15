@@ -19,9 +19,8 @@ def team_name_map(name):
         "Sheffield Utd": "Sheffield United",
         "Newcastle Utd": "Newcastle United",
         "Manchester Utd": "Manchester United",
-
     }
-    return teams.get(name)
+    return teams.get(name, name)
 
 
 def team_stats_page(name):

@@ -13,17 +13,19 @@ def find_games_by_date(league_id, date):
     league_games = soup.find("div", id=f"all_sched_2023-2024_{league_id}").find_all("tr")
     games = []
 
-    for game in league_games:
-        home = game.find("td", {"data-stat": "home_team"})
-        away = game.find("td", {"data-stat": "away_team"})
-        time = game.find("td", {"data-stat": "start_time"})
+    if league_games:
+        for game in league_games:
+            home = game.find("td", {"data-stat": "home_team"})
+            away = game.find("td", {"data-stat": "away_team"})
+            time = game.find("td", {"data-stat": "start_time"})
 
-        if home and away:
-            home_team = home.find("a").get_text()
-            away_team = away.find("a").get_text()
-            start_time = time.find("span", {"class": "venuetime"}).get_text()
-            game = Game(home_team=home_team, away_team=away_team, date=date, time=start_time)
-            games.append(game)
+            if home and away:
+                home_team = home.find("a").get_text()
+                away_team = away.find("a").get_text()
+                start_time = time.find("span", {"class": "venuetime"}).get_text()
+
+                game = Game(team_name_map(home_team), team_name_map(away_team), date, start_time)
+                games.append(game)
 
     return games
 
@@ -47,6 +49,22 @@ def find_lineups():
         all_team_lineups.append(Team(team_name, team_lineup, last_updated))
 
     return all_team_lineups
+
+
+def map_lineups_to_teams(games, lineups):
+    for game in games:
+        for team in lineups:
+            if team.get_team_name() == game.home_team:
+                game.home_team = team
+                break
+
+        for team in lineups:
+            if team.get_team_name() == game.away_team:
+                game.away_team = team
+                break
+
+    return games
+
 
 def find_teams_stats(games):
     for game in games:
