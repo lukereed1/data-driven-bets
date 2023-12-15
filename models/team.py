@@ -1,8 +1,8 @@
 class Team:
-    def __init__(self, name):
+    def __init__(self, name, lineup, last_updated):
         self.name = name
-        self.lineup = []
-        self.lineup_date = None
+        self.lineup = lineup
+        self.lineup_last_updated = last_updated
         self.total_xg = 0
         self.total_xg_against = 0
 

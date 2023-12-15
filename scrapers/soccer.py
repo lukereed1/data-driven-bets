@@ -1,10 +1,12 @@
 from util import team_name_map, get_soup, team_stats_page
 from models.game import Game
+from models.team import Team
 from unidecode import unidecode
+from util import serialize
 import json
 
 
-def find_games(league_id, date):
+def find_games_by_date(league_id, date):
     url = f"https://fbref.com/en/matches/{date}"
     soup = get_soup(url)
 
@@ -26,34 +28,25 @@ def find_games(league_id, date):
     return games
 
 
-def find_lineups(games):
+def find_lineups():
     url = "https://www.fantasyfootballscout.co.uk/team-news/"
     soup = get_soup(url)
 
-    for game in games:
-        # Targets divs that desired team names inside of
-        home_formation_div = (soup.find(text=team_name_map(game.home_team.name))
-                              .find_parent().find_parent()
-                              .find_parent().find_next_sibling())
+    teams_info = soup.find("ol", {"class": "news"}).find_all("li", recursive=False)
+    all_team_lineups = []
 
-        away_formation_div = (soup.find(text=team_name_map(game.away_team.name))
-                              .find_parent().find_parent()
-                              .find_parent().find_next_sibling())
+    for team in teams_info:
+        team_name = team.find("div", {"class": "story-wrap"}).find("h2").get_text()
+        team_lineup_element = team.find("div", {"class": "formation"}).find_all("li")
+        last_updated = team.find("li", {"class": "grey"}).get_text()
 
-        if home_formation_div and away_formation_div:
-            # Grabs all list items that have player names
-            home_lineup = home_formation_div.find_all("li")
-            away_lineup = away_formation_div.find_all("li")
+        team_lineup = []
+        for player in team_lineup_element:
+            team_lineup.append(unidecode(player.get_text().strip()))
 
-            # Appends players to team lineup
-            for player in home_lineup:
-                game.home_team.lineup.append(unidecode(player.get_text()))
+        all_team_lineups.append(Team(team_name, team_lineup, last_updated))
 
-            for player in away_lineup:
-                game.away_team.lineup.append(unidecode(player.get_text()))
-
-    return games
-
+    return all_team_lineups
 
 def find_teams_stats(games):
     for game in games:

@@ -1,9 +1,10 @@
-from scrapers.soccer import find_games, find_lineups, find_teams_stats
+from scrapers.soccer import find_games_by_date, find_lineups, find_teams_stats
 from util import serialize
 import json
 
-daily_games = find_games(9, "2023-12-15")
-daily_games = find_lineups(daily_games)
+# daily_games = find_games_by_date(9, "2023-12-16")
+teams_lineups = find_lineups()
+
+print(serialize(teams_lineups))
 
 
-print(serialize(find_teams_stats(daily_games)))

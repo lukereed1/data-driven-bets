@@ -15,7 +15,11 @@ def serialize(self):
 def team_name_map(name):
     teams = {
         "Nott'ham Forest": "Nottingham Forest",
-        "Tottenham": "Tottenham Hotspur"
+        "Tottenham": "Tottenham Hotspur",
+        "Sheffield Utd": "Sheffield United",
+        "Newcastle Utd": "Newcastle United",
+        "Manchester Utd": "Manchester United",
+
     }
     return teams.get(name)
 
@@ -46,8 +50,8 @@ def team_stats_page(name):
     return stats_page.get(name)
 
 
-def get_team_stats_url(team_name):
-    url = "https://fbref.com/en/comps/9/Premier-League-Stats"
-    soup = get_soup(url)
-    link = soup.find(text=team_name).find_parent().get("href")
-    return f"https://www.fbref.com{link}"
+# def get_team_stats_url(team_name):
+#     url = "https://fbref.com/en/comps/9/Premier-League-Stats"
+#     soup = get_soup(url)
+#     link = soup.find(text=team_name).find_parent().get("href")
+#     return f"https://www.fbref.com{link}"
