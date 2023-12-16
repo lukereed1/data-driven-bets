@@ -115,3 +115,15 @@ def get_team_xg_against_per_90(stats):
 
 def get_team_goals_conceded(stats):
     return stats.find("td", {"data-stat": "goals"}).get_text()
+
+
+def get_league_goals_conceded_avg():
+    url = "https://fbref.com/en/comps/9/Premier-League-Stats"
+    soup = get_soup(url)
+    table_rows = soup.find("table", id="stats_squads_standard_against").find("tbody").find_all("tr")
+
+    total_goals_conceded = 0
+    for row in table_rows:
+        total_goals_conceded += int(row.find('td', {"data-stat": "goals"}).get_text()) / 20
+
+    return round(total_goals_conceded, 2)
