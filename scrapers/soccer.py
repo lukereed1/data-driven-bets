@@ -73,10 +73,12 @@ def get_teams_stats(games):
         home_total_xg = get_team_xg_per_90(stat_table_rows, game.home_team.lineup)
         home_total_xga = get_team_xg_against_per_90(opponent_stats)
         home_goals_conceded = get_team_goals_conceded(opponent_stats)
+        home_goals_conceded_p90 = get_team_goals_conceded_per90(opponent_stats)
 
         game.home_team.set_total_xg(home_total_xg)
         game.home_team.set_total_xga(home_total_xga)
         game.home_team.set_total_goals_conceded(home_goals_conceded)
+        game.home_team.set_total_goals_conceded_p90(home_goals_conceded_p90)
 
         # Away
         away_url = team_stats_page(game.away_team.name)
@@ -88,10 +90,12 @@ def get_teams_stats(games):
         away_total_xg = get_team_xg_per_90(stat_table_rows, game.away_team.lineup)
         away_total_xga = get_team_xg_against_per_90(opponent_stats)
         away_goals_conceded = get_team_goals_conceded(opponent_stats)
+        away_goals_conceded_p90 = get_team_goals_conceded_per90(opponent_stats)
 
         game.away_team.set_total_xg(away_total_xg)
         game.away_team.set_total_xga(away_total_xga)
         game.away_team.set_total_goals_conceded(away_goals_conceded)
+        game.away_team.set_total_goals_conceded_p90(away_goals_conceded_p90)
 
     return games
 
@@ -117,6 +121,10 @@ def get_team_goals_conceded(stats):
     return stats.find("td", {"data-stat": "goals"}).get_text()
 
 
+def get_team_goals_conceded_per90(stats):
+    return stats.find("td", {"data-stat": "goals_per90"}).get_text()
+
+
 def get_league_goals_conceded_avg():
     url = "https://fbref.com/en/comps/9/Premier-League-Stats"
     soup = get_soup(url)
@@ -124,6 +132,24 @@ def get_league_goals_conceded_avg():
 
     total_goals_conceded = 0
     for row in table_rows:
-        total_goals_conceded += int(row.find('td', {"data-stat": "goals"}).get_text()) / 20
+        total_goals_conceded += float(row.find('td', {"data-stat": "goals"}).get_text()) / 20
 
     return round(total_goals_conceded, 2)
+
+
+def adjust_xg(games):
+    league_goals_conceded_avg = get_league_goals_conceded_avg()
+    for game in games:
+        h_def_factor = get_defensive_adjustment_factor(game.home_team, league_goals_conceded_avg)
+        a_def_factor = get_defensive_adjustment_factor(game.away_team, league_goals_conceded_avg)
+
+        home_adjusted_xg = ((game.home_team.get_total_xg() * a_def_factor)
+                            + float(game.away_team.get_total_xga())
+                            + 1)
+
+        print(home_adjusted_xg)
+
+
+def get_defensive_adjustment_factor(team, league_avg_goals_conceded):
+    return round((float(team.get_total_goals_conceded()) / league_avg_goals_conceded), 2)
+
