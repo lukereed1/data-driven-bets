@@ -19,6 +19,9 @@ def team_name_map(name):
         "Sheffield Utd": "Sheffield United",
         "Newcastle Utd": "Newcastle United",
         "Manchester Utd": "Manchester United",
+        "West Ham": "West Ham United",
+        "Wolves": "Wolverhampton Wanderers",
+        "Brighton": "Brighton and Hove Albion"
     }
     return teams.get(name, name)
 

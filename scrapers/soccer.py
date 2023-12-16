@@ -61,25 +61,36 @@ def map_lineups_to_teams(games, lineups):
     return games
 
 
-def find_teams_stats(games):
+def get_teams_stats(games):
     for game in games:
         # Home
         home_url = team_stats_page(game.home_team.name)
         soup = get_soup(home_url)
+
         stat_table_rows = soup.find("tbody").find_all("tr")
-        home_total_xg = find_team_xg_per_90(stat_table_rows, game.home_team.lineup)
+        opponent_stats = soup.find(text="Opponent Total").find_parent().find_parent()
+
+        home_total_xg = get_team_xg_per_90(stat_table_rows, game.home_team.lineup)
+        home_total_xga = get_team_xg_against_per_90(opponent_stats)
         game.home_team.set_total_xg(home_total_xg)
+        game.home_team.set_total_xga(home_total_xga)
 
         # Away
         away_url = team_stats_page(game.away_team.name)
         soup = get_soup(away_url)
+
         stat_table_rows = soup.find("tbody").find_all("tr")
-        away_total_xg = find_team_xg_per_90(stat_table_rows, game.away_team.lineup)
+        opponent_stats = soup.find(text="Opponent Total").find_parent().find_parent()
+
+        away_total_xg = get_team_xg_per_90(stat_table_rows, game.away_team.lineup)
+        away_total_xga = get_team_xg_against_per_90(opponent_stats)
         game.away_team.set_total_xg(away_total_xg)
+        game.away_team.set_total_xga(away_total_xga)
+
     return games
 
 
-def find_team_xg_per_90(table, lineup):
+def get_team_xg_per_90(table, lineup):
     total_xg = 0
     for row in table:
         player = row.find("th", {"data-stat": "player"}).get_text().split()[-1]
@@ -92,4 +103,6 @@ def find_team_xg_per_90(table, lineup):
     return round(total_xg, 2)
 
 
-# def find_team_xg_against_per_90(table, lineup):
+def get_team_xg_against_per_90(stats):
+    return stats.find("td", {"data-stat": "xg_per90"}).get_text()
+
