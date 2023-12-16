@@ -24,6 +24,9 @@ class Team:
     def get_total_goals_conceded(self):
         return self.total_goals_conceded
 
+    def get_total_goals_conceded_p90(self):
+        return self.goals_conceded_p90
+
     def set_total_xg(self, xg):
         self.total_xg = xg
 

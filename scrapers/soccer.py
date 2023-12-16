@@ -137,17 +137,29 @@ def get_league_goals_conceded_avg():
     return round(total_goals_conceded, 2)
 
 
-def adjust_xg(games):
+def adjust_teams_xg(games):
     league_goals_conceded_avg = get_league_goals_conceded_avg()
     for game in games:
         h_def_factor = get_defensive_adjustment_factor(game.home_team, league_goals_conceded_avg)
         a_def_factor = get_defensive_adjustment_factor(game.away_team, league_goals_conceded_avg)
 
-        home_adjusted_xg = ((game.home_team.get_total_xg() * a_def_factor)
-                            + float(game.away_team.get_total_xga())
-                            + 1)
+        # 10% increase for home teams, 5% decrease for away teams
+        home_adjusted_xg = round(get_xg_average(game.home_team, game.away_team, a_def_factor) * 1.1, 2)
+        away_adjusted_xg = round(get_xg_average(game.away_team, game.home_team, h_def_factor) * 0.95, 2)
 
-        print(home_adjusted_xg)
+        game.home_team.set_adjusted_xg(home_adjusted_xg)
+        game.away_team.set_adjusted_xg(away_adjusted_xg)
+
+    return games
+
+
+# Gets average of xG * opponents defensive adjustment factor,
+# opponents xGa and opponents avg goals conceded.
+def get_xg_average(team1, team2, def_factor):
+    total = (team1.get_total_xg() * def_factor
+             + float(team2.get_total_xga())
+             + float(team2.get_total_goals_conceded_p90()))
+    return total / 3
 
 
 def get_defensive_adjustment_factor(team, league_avg_goals_conceded):
