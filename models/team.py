@@ -5,6 +5,7 @@ class Team:
         self.lineup_last_updated = last_updated
         self.total_xg = 0
         self.total_xga = 0
+        self.total_goals_conceded = 0
 
     def get_team_name(self):
         return self.name
@@ -17,3 +18,6 @@ class Team:
 
     def set_total_xga(self, xga):
         self.total_xga = xga
+
+    def set_total_goals_conceded(self, total_goals):
+        self.total_goals_conceded = total_goals

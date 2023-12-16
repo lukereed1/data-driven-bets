@@ -72,8 +72,11 @@ def get_teams_stats(games):
 
         home_total_xg = get_team_xg_per_90(stat_table_rows, game.home_team.lineup)
         home_total_xga = get_team_xg_against_per_90(opponent_stats)
+        home_goals_conceded = get_team_goals_conceded(opponent_stats)
+
         game.home_team.set_total_xg(home_total_xg)
         game.home_team.set_total_xga(home_total_xga)
+        game.home_team.set_total_goals_conceded(home_goals_conceded)
 
         # Away
         away_url = team_stats_page(game.away_team.name)
@@ -84,8 +87,11 @@ def get_teams_stats(games):
 
         away_total_xg = get_team_xg_per_90(stat_table_rows, game.away_team.lineup)
         away_total_xga = get_team_xg_against_per_90(opponent_stats)
+        away_goals_conceded = get_team_goals_conceded(opponent_stats)
+
         game.away_team.set_total_xg(away_total_xg)
         game.away_team.set_total_xga(away_total_xga)
+        game.away_team.set_total_goals_conceded(away_goals_conceded)
 
     return games
 
@@ -106,3 +112,6 @@ def get_team_xg_per_90(table, lineup):
 def get_team_xg_against_per_90(stats):
     return stats.find("td", {"data-stat": "xg_per90"}).get_text()
 
+
+def get_team_goals_conceded(stats):
+    return stats.find("td", {"data-stat": "goals"}).get_text()

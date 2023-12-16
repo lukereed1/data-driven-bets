@@ -9,7 +9,7 @@ def get_soup(url):
 
 
 def serialize(self):
-    print(json.dumps(self, indent=2, default=lambda obj: obj.__dict__))
+    return json.dumps(self, indent=2, default=lambda obj: obj.__dict__)
 
 
 def team_name_map(name):
