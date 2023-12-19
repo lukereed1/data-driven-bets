@@ -13,18 +13,21 @@ def get_games_by_date(league_id, date):
     games = []
 
     if league_games:
-        for game in league_games:
-            home = game.find("td", {"data-stat": "home_team"})
-            away = game.find("td", {"data-stat": "away_team"})
-            time = game.find("td", {"data-stat": "start_time"})
+        try:
+            for game in league_games:
+                home = game.find("td", {"data-stat": "home_team"})
+                away = game.find("td", {"data-stat": "away_team"})
+                time = game.find("td", {"data-stat": "start_time"})
 
-            if home and away:
-                home_team = home.find("a").get_text()
-                away_team = away.find("a").get_text()
-                start_time = time.find("span", {"class": "venuetime"}).get_text()
+                if home and away:
+                    home_team = home.find("a").get_text()
+                    away_team = away.find("a").get_text()
+                    start_time = time.find("span", {"class": "venuetime"}).get_text()
 
-                game = Game(home_team, away_team, date, start_time)
-                games.append(game)
+                    game = Game(home_team, away_team, date, start_time)
+                    games.append(game)
+        except Exception as e:
+            print(f"Problem finding one or more games: {e}")
     return games
 
 
@@ -61,6 +64,38 @@ def map_lineups_to_teams(games, lineups):
     return games
 
 
+def get_league_stats(games):
+    url = "https://fbref.com/en/comps/9/Premier-League-Stats"
+    soup = get_soup(url)
+    table_rows = soup.find("table", id="results2023-202491_home_away").find("tbody").find_all("tr")
+
+    for game in games:
+        for row in table_rows:
+            team_name = row.find("td", {"data-stat": "team"}).get_text().strip()
+
+            if team_name_map(team_name) == game.home_team.name:
+                home_games_played = float(row.find("td", {"data-stat": "home_games"}).get_text())
+                home_goals_for = float(row.find("td", {"data-stat": "home_goals_for"}).get_text())
+                home_goals_against = float(row.find("td", {"data-stat": "home_goals_against"}).get_text())
+                home_xga = float(row.find("td", {"data-stat": "home_xg_against"}).get_text())
+
+                game.home_team.set_goals_scored_p90(home_goals_for / home_games_played)
+                game.home_team.set_goals_conceded_p90(home_goals_against / home_games_played)
+                game.home_team.set_total_xga(home_xga / home_games_played)
+
+            if team_name_map(team_name) == game.away_team.name:
+                away_games_played = float(row.find("td", {"data-stat": "away_games"}).get_text())
+                away_goals_for = float(row.find("td", {"data-stat": "away_goals_for"}).get_text())
+                away_goals_against = float(row.find("td", {"data-stat": "away_goals_against"}).get_text())
+                away_xga = float(row.find("td", {"data-stat": "away_xg_against"}).get_text())
+
+                game.away_team.set_goals_scored_p90(away_goals_for / away_games_played)
+                game.away_team.set_goals_conceded_p90(away_goals_against / away_games_played)
+                game.away_team.set_total_xga(away_xga / away_games_played)
+
+    return games
+
+
 def get_teams_stats(games):
     for game in games:
         # Home
@@ -71,14 +106,14 @@ def get_teams_stats(games):
         opponent_stats = soup.find(text="Opponent Total").find_parent().find_parent()
 
         home_total_xg = get_team_xg_per_90(stat_table_rows, game.home_team.lineup)
-        home_total_xga = get_team_xg_against_per_90(opponent_stats)
-        home_goals_conceded = get_team_goals_conceded(opponent_stats)
-        home_goals_conceded_p90 = get_team_goals_conceded_per90(opponent_stats)
+        # home_total_xga = get_team_xg_against_per_90(opponent_stats)
+        # home_goals_conceded = get_team_goals_conceded(opponent_stats)
+        # home_goals_conceded_p90 = get_team_goals_conceded_per90(opponent_stats)
 
         game.home_team.set_total_xg(home_total_xg)
-        game.home_team.set_total_xga(home_total_xga)
-        game.home_team.set_total_goals_conceded(home_goals_conceded)
-        game.home_team.set_total_goals_conceded_p90(home_goals_conceded_p90)
+        # game.home_team.set_total_xga(home_total_xga)
+        # game.home_team.set_total_goals_conceded(home_goals_conceded)
+        # game.home_team.set_total_goals_conceded_p90(home_goals_conceded_p90)
 
         # Away
         away_url = team_stats_page(game.away_team.name)
@@ -88,16 +123,20 @@ def get_teams_stats(games):
         opponent_stats = soup.find(text="Opponent Total").find_parent().find_parent()
 
         away_total_xg = get_team_xg_per_90(stat_table_rows, game.away_team.lineup)
-        away_total_xga = get_team_xg_against_per_90(opponent_stats)
-        away_goals_conceded = get_team_goals_conceded(opponent_stats)
-        away_goals_conceded_p90 = get_team_goals_conceded_per90(opponent_stats)
+        # away_total_xga = get_team_xg_against_per_90(opponent_stats)
+        # away_goals_conceded = get_team_goals_conceded(opponent_stats)
+        # away_goals_conceded_p90 = get_team_goals_conceded_per90(opponent_stats)
 
         game.away_team.set_total_xg(away_total_xg)
-        game.away_team.set_total_xga(away_total_xga)
-        game.away_team.set_total_goals_conceded(away_goals_conceded)
-        game.away_team.set_total_goals_conceded_p90(away_goals_conceded_p90)
+        # game.away_team.set_total_xga(away_total_xga)
+        # game.away_team.set_total_goals_conceded(away_goals_conceded)
+        # game.away_team.set_total_goals_conceded_p90(away_goals_conceded_p90)
 
     return games
+
+
+def get_actual_goals_per_90():
+    print("test")
 
 
 def get_team_xg_per_90(table, lineup):

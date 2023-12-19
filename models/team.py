@@ -5,7 +5,7 @@ class Team:
         self.lineup_last_updated = last_updated
         self.total_xg = 0
         self.total_xga = 0
-        self.total_goals_conceded = 0
+        self.goals_scored_p90 = 0
         self.goals_conceded_p90 = 0
         self.adjusted_xg = 0
 
@@ -21,10 +21,7 @@ class Team:
     def get_total_xga(self):
         return self.total_xga
 
-    def get_total_goals_conceded(self):
-        return self.total_goals_conceded
-
-    def get_total_goals_conceded_p90(self):
+    def get_goals_conceded_p90(self):
         return self.goals_conceded_p90
 
     def set_total_xg(self, xg):
@@ -33,10 +30,10 @@ class Team:
     def set_total_xga(self, xga):
         self.total_xga = xga
 
-    def set_total_goals_conceded(self, total_goals):
-        self.total_goals_conceded = total_goals
+    def set_goals_scored_p90(self, goals):
+        self.goals_scored_p90 = goals
 
-    def set_total_goals_conceded_p90(self, total_goals):
+    def set_goals_conceded_p90(self, total_goals):
         self.goals_conceded_p90 = total_goals
 
     def set_adjusted_xg(self, xg):
