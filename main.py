@@ -4,7 +4,8 @@ from sports.soccer import (get_games_by_date,
                            get_total_team_xg,
                            adjust_teams_xg,
                            get_for_and_against_stats,
-                           print_goal_data)
+                           get_goal_data,
+                           get_correct_score_odds)
 from util import serialize
 
 
@@ -14,7 +15,8 @@ map_lineups_to_teams(games, teams_lineups)
 get_for_and_against_stats(games)
 get_total_team_xg(games)
 adjust_teams_xg(games)
-print_goal_data(games)
+get_goal_data(games)
+
 print(serialize(games))
 
 

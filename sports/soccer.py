@@ -1,6 +1,7 @@
 from util import team_name_map, get_soup, team_stats_page
 from models.game import Game
 from models.team import Team
+from models.goal_data import GoalData
 from unidecode import unidecode
 import math
 import pandas as pd
@@ -135,6 +136,7 @@ def adjust_teams_xg(games):
         away_adj_xg = get_xg_average(game.away_team, game.home_team)
         game.home_team.set_adjusted_xg(home_adj_xg)
         game.away_team.set_adjusted_xg(away_adj_xg)
+        game.total_xg = round(home_adj_xg + away_adj_xg, 2)
     return games
 
 
@@ -145,6 +147,19 @@ def get_xg_average(team1, team2):
             + team2.get_goals_conceded_p90()) / 4, 2)
 
 
+def get_goal_data(games):
+    for game in games:
+        home_xg = game.home_team.get_adjusted_xg()
+        away_xg = game.away_team.get_adjusted_xg()
+
+        for goals in range(6):
+            home_odds = round(poisson_probability(home_xg, goals) * 100, 2)
+            away_odds = round(poisson_probability(away_xg, goals) * 100, 2)
+
+            game.home_team.goal_data.append(GoalData(goals, home_odds))
+            game.away_team.goal_data.append(GoalData(goals, away_odds))
+    return games
+
 def print_goal_data(games):
     for game in games:
         home_team = game.home_team.get_team_name()
@@ -153,9 +168,10 @@ def print_goal_data(games):
         away_xg = game.away_team.get_adjusted_xg()
         data = []
 
-        for goals in range(7):
+        for goals in range(6):
             home_odds = round(poisson_probability(home_xg, goals) * 100, 2)
             away_odds = round(poisson_probability(away_xg, goals) * 100, 2)
+
             data.append({"Goals": goals, f"{home_team}": f"{home_odds}%", f"{away_team}": f"{away_odds}%"})
         df = pd.DataFrame(data)
         print(df)
@@ -164,3 +180,6 @@ def print_goal_data(games):
 def poisson_probability(xg, goal_amount):
     return math.exp(-xg) * (xg ** goal_amount) / math.factorial(goal_amount)
 
+
+def get_correct_score_odds(goal_data):
+    print("test")
