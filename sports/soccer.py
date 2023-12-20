@@ -2,7 +2,6 @@ from util import team_name_map, get_soup, team_stats_page
 from models.game import Game
 from models.team import Team
 from unidecode import unidecode
-from util import serialize
 import math
 import pandas as pd
 
@@ -103,7 +102,6 @@ def get_total_team_xg(games):
         # Home
         home_url = team_stats_page(game.home_team.name)
         soup = get_soup(home_url)
-        print(soup)
         stat_table_rows = soup.find("tbody").find_all("tr")
         home_total_xg = scrape_players_xg(stat_table_rows, game.home_team.lineup)
         game.home_team.set_total_xg(home_total_xg)
@@ -111,7 +109,6 @@ def get_total_team_xg(games):
         # Away
         away_url = team_stats_page(game.away_team.name)
         soup = get_soup(away_url)
-        print(soup)
         stat_table_rows = soup.find("tbody").find_all("tr")
         away_total_xg = scrape_players_xg(stat_table_rows, game.away_team.lineup)
         game.away_team.set_total_xg(away_total_xg)
@@ -155,10 +152,11 @@ def print_goal_data(games):
         home_xg = game.home_team.get_adjusted_xg()
         away_xg = game.away_team.get_adjusted_xg()
         data = []
+
         for goals in range(7):
-            home_odds = poisson_probability(home_xg, goals)
-            away_odds = poisson_probability(away_xg, goals)
-            data.append({"Goals": goals, f"{home_team}": home_odds, f"{away_team}": away_odds})
+            home_odds = round(poisson_probability(home_xg, goals) * 100, 2)
+            away_odds = round(poisson_probability(away_xg, goals) * 100, 2)
+            data.append({"Goals": goals, f"{home_team}": f"{home_odds}%", f"{away_team}": f"{away_odds}%"})
         df = pd.DataFrame(data)
         print(df)
 
