@@ -11,6 +11,7 @@ class Team:
         self.goals_conceded_p90 = 0
         self.adjusted_xg = 0
         self.adjusted_xg_avgs = 0
+        # self.def_off_adjusted_xg = 0
 
     def get_team_name(self):
         return self.name
@@ -59,3 +60,6 @@ class Team:
 
     def set_adjusted_xg_avgs(self, xg):
         self.adjusted_xg_avgs = xg
+
+    # def set_def_off_adjusted_xg(self, xg):
+    #     self.def_off_adjusted_xg = xg
