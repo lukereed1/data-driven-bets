@@ -35,6 +35,9 @@ class Team:
     def get_total_goals_conceded(self):
         return self.total_goals_conceded
 
+    def get_adjusted_xg(self):
+        return self.adjusted_xg
+
     def set_total_xg(self, xg):
         self.total_xg = xg
 
@@ -56,8 +59,3 @@ class Team:
     def set_adjusted_xg(self, xg):
         self.adjusted_xg = xg
 
-    def set_adjusted_xg_avgs(self, xg):
-        self.adjusted_xg_avgs = xg
-
-    # def set_def_off_adjusted_xg(self, xg):
-    #     self.def_off_adjusted_xg = xg
