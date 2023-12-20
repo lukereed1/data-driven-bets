@@ -10,8 +10,6 @@ class Team:
         self.goals_scored_p90 = 0
         self.goals_conceded_p90 = 0
         self.adjusted_xg = 0
-        self.adjusted_xg_avgs = 0
-        # self.def_off_adjusted_xg = 0
 
     def get_team_name(self):
         return self.name
