@@ -170,7 +170,7 @@ def print_goal_data(games):
         away_xg = game.away_team.adjusted_xg
         data = []
 
-        for goals in range(7):
+        for goals in range(6):
             home_odds = round(poisson_probability(home_xg, goals) * 100, 2)
             away_odds = round(poisson_probability(away_xg, goals) * 100, 2)
 
@@ -190,14 +190,39 @@ def get_correct_score_odds(games):
 
         for h_data in home_goals_data:
             for a_data in away_goals_data:
-                game.correct_score_odds.append(CorrectScore(game.home_team.name,
+                game.correct_score_odds.append(CorrectScore(f"{game.home_team.name} | {game.away_team.name}",
                                                             f"{h_data.goal_amount} - {a_data.goal_amount}",
-                                                            round(h_data.probability * a_data.probability, 4)))
-
-        for a_data in away_goals_data:
-            for h_data in home_goals_data:
-                game.correct_score_odds.append(CorrectScore(game.away_team.name,
-                                                            f"{a_data.goal_amount} - {h_data.goal_amount}",
-                                                            round(a_data.probability * h_data.probability, 4)))
+                                                            round(1 / (h_data.probability * a_data.probability), 2)))
 
     return games
+
+
+def get_outcome_odds(games):
+    for game in games:
+        h_goal_data = game.home_team.goal_data
+        a_goal_data = game.away_team.goal_data
+        h_win_prob = 0
+        a_win_prob = 0
+        draw_prob = 0
+
+        for h_data in h_goal_data:
+            h_goal = h_data.goal_amount
+            h_prob = h_data.probability
+
+            for a_data in a_goal_data:
+                a_goal = a_data.goal_amount
+                a_prob = a_data.probability
+
+                if h_goal > a_goal:
+                    h_win_prob += h_prob * a_prob
+                elif h_goal < a_goal:
+                    a_win_prob += h_prob * a_prob
+                else:
+                    draw_prob += h_prob * a_prob
+
+        game.home_team_odds = round(1 / h_win_prob, 2)
+        game.away_team_odds = round(1 / a_win_prob, 2)
+        game.draw_odds = round(1 / draw_prob, 2)
+
+    return games
+
