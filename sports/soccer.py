@@ -1,7 +1,8 @@
 from util import team_name_map, get_soup, team_stats_page
 from models.game import Game
 from models.team import Team
-from models.goal_data import GoalData
+from models.goal_chance import GoalChance
+from models.correct_score import CorrectScore
 from unidecode import unidecode
 import math
 import pandas as pd
@@ -54,12 +55,12 @@ def get_lineups():
 def map_lineups_to_teams(games, lineups):
     for game in games:
         for team in lineups:
-            if team.get_team_name() == team_name_map(game.home_team):
+            if team.name == team_name_map(game.home_team):
                 game.home_team = team
                 break
 
         for team in lineups:
-            if team.get_team_name() == team_name_map(game.away_team):
+            if team.name == team_name_map(game.away_team):
                 game.away_team = team
                 break
     return games
@@ -81,9 +82,9 @@ def get_for_and_against_stats(games):
                 home_goals_against = float(row.find("td", {"data-stat": "home_goals_against"}).get_text())
                 home_xga = float(row.find("td", {"data-stat": "home_xg_against"}).get_text())
 
-                game.home_team.set_goals_scored_p90(home_goals_for / home_games_played)
-                game.home_team.set_goals_conceded_p90(home_goals_against / home_games_played)
-                game.home_team.set_total_xga(home_xga / home_games_played)
+                game.home_team.goals_scored_p90 = home_goals_for / home_games_played
+                game.home_team.goals_conceded_p90 = home_goals_against / home_games_played
+                game.home_team.total_xga = home_xga / home_games_played
 
             # Away
             elif team_name_map(team_name) == game.away_team.name:
@@ -92,9 +93,9 @@ def get_for_and_against_stats(games):
                 away_goals_against = float(row.find("td", {"data-stat": "away_goals_against"}).get_text())
                 away_xga = float(row.find("td", {"data-stat": "away_xg_against"}).get_text())
 
-                game.away_team.set_goals_scored_p90(away_goals_for / away_games_played)
-                game.away_team.set_goals_conceded_p90(away_goals_against / away_games_played)
-                game.away_team.set_total_xga(away_xga / away_games_played)
+                game.away_team.goals_scored_p90 = away_goals_for / away_games_played
+                game.away_team.goals_conceded_p90 = away_goals_against / away_games_played
+                game.away_team.total_xga = away_xga / away_games_played
     return games
 
 
@@ -105,14 +106,14 @@ def get_total_team_xg(games):
         soup = get_soup(home_url)
         stat_table_rows = soup.find("tbody").find_all("tr")
         home_total_xg = scrape_players_xg(stat_table_rows, game.home_team.lineup)
-        game.home_team.set_total_xg(home_total_xg)
+        game.home_team.total_xg = home_total_xg
 
         # Away
         away_url = team_stats_page(game.away_team.name)
         soup = get_soup(away_url)
         stat_table_rows = soup.find("tbody").find_all("tr")
         away_total_xg = scrape_players_xg(stat_table_rows, game.away_team.lineup)
-        game.away_team.set_total_xg(away_total_xg)
+        game.away_team.total_xg = away_total_xg
     return games
 
 
@@ -134,41 +135,42 @@ def adjust_teams_xg(games):
         # For/against xg adjustment
         home_adj_xg = get_xg_average(game.home_team, game.away_team)
         away_adj_xg = get_xg_average(game.away_team, game.home_team)
-        game.home_team.set_adjusted_xg(home_adj_xg)
-        game.away_team.set_adjusted_xg(away_adj_xg)
+        game.home_team.adjusted_xg = home_adj_xg
+        game.away_team.adjusted_xg = away_adj_xg
         game.total_xg = round(home_adj_xg + away_adj_xg, 2)
     return games
 
 
 def get_xg_average(team1, team2):
-    return round((team1.get_total_xg()
-            + team1.get_goals_scored_p90()
-            + team2.get_total_xga()
-            + team2.get_goals_conceded_p90()) / 4, 2)
+    return round((team1.total_xg
+                  + team1.goals_scored_p90
+                  + team2.total_xga
+                  + team2.goals_conceded_p90) / 4, 2)
 
 
 def get_goal_data(games):
     for game in games:
-        home_xg = game.home_team.get_adjusted_xg()
-        away_xg = game.away_team.get_adjusted_xg()
+        home_xg = game.home_team.adjusted_xg
+        away_xg = game.away_team.adjusted_xg
 
-        for goals in range(6):
-            home_odds = round(poisson_probability(home_xg, goals) * 100, 2)
-            away_odds = round(poisson_probability(away_xg, goals) * 100, 2)
+        for goals in range(7):
+            home_odds = round(poisson_probability(home_xg, goals), 3)
+            away_odds = round(poisson_probability(away_xg, goals), 3)
 
-            game.home_team.goal_data.append(GoalData(goals, home_odds))
-            game.away_team.goal_data.append(GoalData(goals, away_odds))
+            game.home_team.goal_data.append(GoalChance(goals, home_odds))
+            game.away_team.goal_data.append(GoalChance(goals, away_odds))
     return games
+
 
 def print_goal_data(games):
     for game in games:
-        home_team = game.home_team.get_team_name()
-        away_team = game.away_team.get_team_name()
-        home_xg = game.home_team.get_adjusted_xg()
-        away_xg = game.away_team.get_adjusted_xg()
+        home_team = game.home_team.name
+        away_team = game.away_team.name
+        home_xg = game.home_team.adjusted_xg
+        away_xg = game.away_team.adjusted_xg
         data = []
 
-        for goals in range(6):
+        for goals in range(7):
             home_odds = round(poisson_probability(home_xg, goals) * 100, 2)
             away_odds = round(poisson_probability(away_xg, goals) * 100, 2)
 
@@ -181,5 +183,21 @@ def poisson_probability(xg, goal_amount):
     return math.exp(-xg) * (xg ** goal_amount) / math.factorial(goal_amount)
 
 
-def get_correct_score_odds(goal_data):
-    print("test")
+def get_correct_score_odds(games):
+    for game in games:
+        home_goals_data = game.home_team.goal_data
+        away_goals_data = game.away_team.goal_data
+
+        for h_data in home_goals_data:
+            for a_data in away_goals_data:
+                game.correct_score_odds.append(CorrectScore(game.home_team.name,
+                                                            f"{h_data.goal_amount} - {a_data.goal_amount}",
+                                                            round(h_data.probability * a_data.probability, 4)))
+
+        for a_data in away_goals_data:
+            for h_data in home_goals_data:
+                game.correct_score_odds.append(CorrectScore(game.away_team.name,
+                                                            f"{a_data.goal_amount} - {h_data.goal_amount}",
+                                                            round(a_data.probability * h_data.probability, 4)))
+
+    return games

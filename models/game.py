@@ -5,6 +5,6 @@ class Game:
         self.home_team = home_team
         self.away_team = away_team
         self.total_xg = 0
-
+        self.correct_score_odds = []
 
 
