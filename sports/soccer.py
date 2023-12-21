@@ -15,21 +15,23 @@ def get_games_by_date(league_id, date):
     games = []
 
     if league_games:
-        try:
-            for game in league_games:
-                home = game.find("td", {"data-stat": "home_team"})
-                away = game.find("td", {"data-stat": "away_team"})
-                time = game.find("td", {"data-stat": "start_time"})
+        for game in league_games:
+            home = game.find("td", {"data-stat": "home_team"})
+            away = game.find("td", {"data-stat": "away_team"})
+            time = game.find("td", {"data-stat": "start_time"})
 
-                if home and away:
-                    home_team = home.find("a").get_text()
-                    away_team = away.find("a").get_text()
+            if home and away:
+                home_team = home.find("a").get_text()
+                away_team = away.find("a").get_text()
+                try:
                     start_time = time.find("span", {"class": "venuetime"}).get_text()
+                except Exception as e:
+                    start_time = "Not shown"
+                    print(f"No start time displayed: {e}")
 
-                    game = Game(home_team, away_team, date, start_time)
-                    games.append(game)
-        except Exception as e:
-            print(f"Problem finding one or more games: {e}")
+                game = Game(home_team, away_team, date, start_time)
+                games.append(game)
+
     return games
 
 
@@ -190,9 +192,14 @@ def get_correct_score_odds(games):
 
         for h_data in home_goals_data:
             for a_data in away_goals_data:
+                prob = h_data.probability * a_data.probability
+                if prob == 0:
+                    prob = "Never gonna happen"
+                else:
+                    prob = round(1 / prob, 2)
                 game.correct_score_odds.append(CorrectScore(f"{game.home_team.name} | {game.away_team.name}",
                                                             f"{h_data.goal_amount} - {a_data.goal_amount}",
-                                                            round(1 / (h_data.probability * a_data.probability), 2)))
+                                                            prob))
 
     return games
 
@@ -225,4 +232,3 @@ def get_outcome_odds(games):
         game.draw_odds = round(1 / draw_prob, 2)
 
     return games
-
