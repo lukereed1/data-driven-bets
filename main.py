@@ -7,11 +7,12 @@ from sports.soccer import (get_games_by_date,
                            get_goal_data,
                            get_correct_score_odds,
                            get_outcome_odds,
-                           print_goal_data)
+                           print_goal_data,
+                           print_correct_score_data)
 from util import serialize
 
 
-games = get_games_by_date("9", "2023-12-23")
+games = get_games_by_date("9", "2024-01-13")
 teams_lineups = get_lineups()
 map_lineups_to_teams(games, teams_lineups)
 get_for_and_against_stats(games)
@@ -20,7 +21,12 @@ adjust_teams_xg(games)
 get_goal_data(games)
 get_correct_score_odds(games)
 get_outcome_odds(games)
-print(serialize(games))
+# Print correct score odds
+print_correct_score_data(games)
+# Print outcome odds
+# Get O/U 2.5 goals odds
+# Get Both teams to score odds
+
 
 
 

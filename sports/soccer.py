@@ -6,6 +6,7 @@ from models.correct_score import CorrectScore
 from unidecode import unidecode
 import math
 import pandas as pd
+from tabulate import tabulate
 
 
 def get_games_by_date(league_id, date):
@@ -202,6 +203,21 @@ def get_correct_score_odds(games):
                                                             prob))
 
     return games
+
+
+def print_correct_score_data(games):
+    for game in games:
+        home_team, away_team = game.correct_score_odds[0].teams.split(" | ")
+
+        data = []
+
+        for score in game.correct_score_odds:
+            home_score, away_score = score.score.split(" - ")
+            data.append([home_score, away_score, score.probability])
+
+        table_headers = [home_team, away_team, "Odds"]
+        table = tabulate(data, headers=table_headers, tablefmt="fancy_grid")
+        print(table)
 
 
 def get_outcome_odds(games):

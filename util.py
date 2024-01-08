@@ -26,6 +26,30 @@ def team_name_map(name):
     return teams.get(name, name)
 
 
+def three_letter_abbreviation(name):
+    teams = {
+        "Liverpool": "LIV",
+        "Arsenal": "ARS",
+        "Aston Villa": "AVL",
+        "Manchester City": "MCI",
+        "Tottenham Hotspur": "TOT",
+        "Manchester United": "MUN",
+        "Newcastle United": "NEW",
+        "Brighton and Hove Albion": "BRI",
+        "West Ham United": "WHU",
+        "Fulham": "FUL",
+        "Brentford": "BRE",
+        "Chelsea": "CHE",
+        "Wolverhampton Wanderers": "WOL",
+        "Bournemouth": "BOU",
+        "Crystal Palace": "CRY",
+        "Nottingham Forest": "NFO",
+        "Everton": "EVE",
+        "Luton Town": "LUT",
+        "Burnley": "BUR",
+        "Sheffield United": "SHU",
+    }
+
 def team_stats_page(name):
     stats_page = {
         "Liverpool": "https://fbref.com/en/squads/822bd0ba/Liverpool-Stats",
