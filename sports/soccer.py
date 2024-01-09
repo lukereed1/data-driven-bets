@@ -1,8 +1,9 @@
-from util import team_name_map, get_soup, team_stats_page, three_letter_abbreviation
+from util import team_name_map, get_soup, team_stats_page, three_letter_abbreviation, serialize
 from models.game import Game
 from models.team import Team
 from models.goal_chance import GoalChance
 from models.correct_score import CorrectScore
+from models.over_under import OverUnder
 from unidecode import unidecode
 import math
 import pandas as pd
@@ -52,6 +53,7 @@ def get_lineups():
             team_lineup.append(unidecode(player.get_text().strip()))
 
         all_team_lineups.append(Team(team_name, team_lineup, last_updated))
+
     return all_team_lineups
 
 
@@ -66,6 +68,7 @@ def map_lineups_to_teams(games, lineups):
             if team.name == team_name_map(game.away_team):
                 game.away_team = team
                 break
+
     return games
 
 
@@ -99,6 +102,7 @@ def get_for_and_against_stats(games):
                 game.away_team.goals_scored_p90 = away_goals_for / away_games_played
                 game.away_team.goals_conceded_p90 = away_goals_against / away_games_played
                 game.away_team.total_xga = away_xga / away_games_played
+
     return games
 
 
@@ -117,6 +121,7 @@ def get_total_team_xg(games):
         stat_table_rows = soup.find("tbody").find_all("tr")
         away_total_xg = scrape_players_xg(stat_table_rows, game.away_team.lineup)
         game.away_team.total_xg = away_total_xg
+
     return games
 
 
@@ -130,6 +135,7 @@ def scrape_players_xg(table, lineup):
         if any(unidecode(first_name) in name or unidecode(last_name) in name for name in lineup):
             player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
             total_xg += float(player_xg)
+
     return round(total_xg, 2)
 
 
@@ -141,6 +147,7 @@ def adjust_teams_xg(games):
         game.home_team.adjusted_xg = home_adj_xg
         game.away_team.adjusted_xg = away_adj_xg
         game.total_xg = round(home_adj_xg + away_adj_xg, 2)
+
     return games
 
 
@@ -162,6 +169,7 @@ def get_goal_data(games):
 
             game.home_team.goal_data.append(GoalChance(goals, home_odds))
             game.away_team.goal_data.append(GoalChance(goals, away_odds))
+
     return games
 
 
@@ -177,8 +185,11 @@ def print_goal_data(games):
             home_odds = round(poisson_probability(home_xg, goals) * 100, 2)
             away_odds = round(poisson_probability(away_xg, goals) * 100, 2)
 
-            data.append({"Goals": goals, f"{home_team}": f"{home_odds}%", f"{away_team}": f"{away_odds}%"})
+            data.append({"Goals": goals,
+                         f"{three_letter_abbreviation(home_team)}": f"{home_odds}%",
+                         f"{three_letter_abbreviation(away_team)}": f"{away_odds}%"})
         df = pd.DataFrame(data)
+
         print(df)
 
 
@@ -196,8 +207,8 @@ def get_correct_score_odds(games):
                 prob = h_data.probability * a_data.probability
                 if prob == 0:
                     prob = "Never gonna happen"
-                else:
-                    prob = round(1 / prob, 2)
+                # else:
+                #     prob = round(1 / prob, 2)
                 game.correct_score_odds.append(CorrectScore(f"{game.home_team.name} | {game.away_team.name}",
                                                             f"{h_data.goal_amount} - {a_data.goal_amount}",
                                                             prob))
@@ -213,10 +224,11 @@ def print_correct_score_data(games):
 
         for score in game.correct_score_odds:
             home_score, away_score = score.score.split(" - ")
-            data.append([home_score, away_score, score.probability])
+            data.append([home_score, away_score, round(1 / score.probability, 2)])
 
         table_headers = [three_letter_abbreviation(home_team), three_letter_abbreviation(away_team), "Odds"]
         table = tabulate(data, headers=table_headers, tablefmt="fancy_grid")
+
         print(table)
 
 
@@ -260,3 +272,29 @@ def print_outcome_odds(games):
         table = tabulate(data, headers=table_headers, tablefmt="fancy_grid")
 
         print(table)
+
+
+def get_goals_over_under_odds(games):
+    for game in games:
+        over_goals = {0.5: 0, 1.5: 0, 2.5: 0, 3.5: 0, 4.5: 0, 5.5: 0}
+        under_goals = {0.5: 0, 1.5: 0, 2.5: 0, 3.5: 0, 4.5: 0, 5.5: 0}
+
+        for score in game.correct_score_odds:
+            home_score, away_score = map(float, score.score.split(" - "))
+            total_score = home_score + away_score
+
+            for goal_value in [0.5, 1.5, 2.5, 3.5, 4.5, 5.5]:
+                if total_score < goal_value:
+                    under_goals[goal_value] += score.probability
+                else:
+                    over_goals[goal_value] += score.probability
+
+        for goals in [0.5, 1.5, 2.5, 3.5, 4.5, 5.5]:
+            over_value = over_goals[goals]
+            game.over_under_odds.append(OverUnder("Over", goals, over_value))
+
+            under_value = under_goals[goals]
+            game.over_under_odds.append(OverUnder("Under", goals, under_value))
+
+        return games
+

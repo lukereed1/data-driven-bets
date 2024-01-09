@@ -9,5 +9,6 @@ class Game:
         self.home_team_odds = 0
         self.away_team_odds = 0
         self.draw_odds = 0
+        self.over_under_odds = []
 
 
