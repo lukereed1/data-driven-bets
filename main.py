@@ -8,7 +8,8 @@ from sports.soccer import (get_games_by_date,
                            get_correct_score_odds,
                            get_outcome_odds,
                            print_goal_data,
-                           print_correct_score_data)
+                           print_correct_score_data,
+                           print_outcome_odds)
 from util import serialize
 
 
@@ -21,9 +22,9 @@ adjust_teams_xg(games)
 get_goal_data(games)
 get_correct_score_odds(games)
 get_outcome_odds(games)
-# Print correct score odds
-print_correct_score_data(games)
-# Print outcome odds
+
+# print_correct_score_data(games)
+print_outcome_odds(games)
 # Get O/U 2.5 goals odds
 # Get Both teams to score odds
 

@@ -1,4 +1,4 @@
-from util import team_name_map, get_soup, team_stats_page
+from util import team_name_map, get_soup, team_stats_page, three_letter_abbreviation
 from models.game import Game
 from models.team import Team
 from models.goal_chance import GoalChance
@@ -215,7 +215,7 @@ def print_correct_score_data(games):
             home_score, away_score = score.score.split(" - ")
             data.append([home_score, away_score, score.probability])
 
-        table_headers = [home_team, away_team, "Odds"]
+        table_headers = [three_letter_abbreviation(home_team), three_letter_abbreviation(away_team), "Odds"]
         table = tabulate(data, headers=table_headers, tablefmt="fancy_grid")
         print(table)
 
@@ -248,3 +248,15 @@ def get_outcome_odds(games):
         game.draw_odds = round(1 / draw_prob, 2)
 
     return games
+
+
+def print_outcome_odds(games):
+    for game in games:
+        home_team = game.home_team.name
+        away_team = game.away_team.name
+
+        data = [[game.home_team_odds, game.draw_odds, game.away_team_odds]]
+        table_headers = [three_letter_abbreviation(home_team), "Draw", three_letter_abbreviation(away_team)]
+        table = tabulate(data, headers=table_headers, tablefmt="fancy_grid")
+
+        print(table)

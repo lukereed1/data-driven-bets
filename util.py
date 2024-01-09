@@ -50,6 +50,9 @@ def three_letter_abbreviation(name):
         "Sheffield United": "SHU",
     }
 
+    return teams.get(name, name)
+
+
 def team_stats_page(name):
     stats_page = {
         "Liverpool": "https://fbref.com/en/squads/822bd0ba/Liverpool-Stats",
