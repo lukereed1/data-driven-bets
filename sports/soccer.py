@@ -219,7 +219,6 @@ def get_correct_score_odds(games):
 def print_correct_score_data(games):
     for game in games:
         home_team, away_team = game.correct_score_odds[0].teams.split(" | ")
-
         data = []
 
         for score in game.correct_score_odds:
@@ -291,10 +290,28 @@ def get_goals_over_under_odds(games):
 
         for goals in [0.5, 1.5, 2.5, 3.5, 4.5, 5.5]:
             over_value = over_goals[goals]
-            game.over_under_odds.append(OverUnder("Over", goals, over_value))
-
             under_value = under_goals[goals]
-            game.over_under_odds.append(OverUnder("Under", goals, under_value))
+            game.over_under_odds.append(OverUnder(goals, over_value, under_value))
 
-        return games
+    return games
+
+
+def print_over_under_odds(games):
+    for game in games:
+        data = []
+
+        for odds in game.over_under_odds:
+            goal_amount = odds.goals
+            over_odds = round(1 / odds.over_probability, 2)
+            under_odds = round(1 / odds.under_probability, 2)
+            data.append([goal_amount, over_odds, under_odds])
+
+        table_headers = ["Goals", "Over", "Under"]
+        table = tabulate(data, table_headers, tablefmt="fancy_grid")
+
+        print(table)
+
+
+
+
 

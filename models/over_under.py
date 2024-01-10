@@ -1,6 +1,7 @@
 class OverUnder:
-    def __init__(self, description, goals, odds):
-        self.description = description
+    def __init__(self, goals, over_probability, under_probability):
         self.goals = goals
-        self.odds = odds
+        self.over_probability = over_probability
+        self.under_probability = under_probability
+
 
