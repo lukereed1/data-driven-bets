@@ -309,7 +309,9 @@ def print_over_under_odds(games):
         table_headers = ["Goals", "Over", "Under"]
         table = tabulate(data, table_headers, tablefmt="fancy_grid")
 
-        print(table)
+        print(f"          "
+              f"{three_letter_abbreviation(game.home_team.name)} VS {three_letter_abbreviation(game.away_team.name)}")
+        print(f"{table}\n")
 
 
 

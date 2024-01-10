@@ -30,8 +30,9 @@ get_goals_over_under_odds(games)
 # Get Both teams to score odds
 
 # print_correct_score_data(games)
-# print_outcome_odds(games)
+print_outcome_odds(games)
 print_over_under_odds(games)
+print(serialize(games))
 
 
 
