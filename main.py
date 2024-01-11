@@ -15,7 +15,7 @@ from sports.soccer import (get_games_by_date,
 from util import serialize
 
 
-games = get_games_by_date("9", "2024-01-13")
+games = get_games_by_date("9", "2024-01-14")
 teams_lineups = get_lineups()
 map_lineups_to_teams(games, teams_lineups)
 get_for_and_against_stats(games)
@@ -32,7 +32,8 @@ get_goals_over_under_odds(games)
 # print_correct_score_data(games)
 print_outcome_odds(games)
 print_over_under_odds(games)
-print(serialize(games))
+
+
 
 
 

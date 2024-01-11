@@ -1,9 +1,9 @@
-from util import team_name_map, get_soup, team_stats_page, three_letter_abbreviation, serialize
-from models.game import Game
-from models.team import Team
-from models.goal_chance import GoalChance
-from models.correct_score import CorrectScore
-from models.over_under import OverUnder
+from util import team_name_map, get_soup, team_stats_page, three_letter_abbreviation
+from models.soccer.game import Game
+from models.soccer.team import Team
+from models.soccer.goal_chance import GoalChance
+from models.soccer.correct_score import CorrectScore
+from models.soccer.over_under import OverUnder
 from unidecode import unidecode
 import math
 import pandas as pd
@@ -129,12 +129,16 @@ def scrape_players_xg(table, lineup):
     total_xg = 0
     for row in table:
         player = row.find("th", {"data-stat": "player"}).get_text().split()[-1]
-        players_names = player.split()
-        first_name, last_name = players_names[0], players_names[-1]
 
-        if any(unidecode(first_name) in name or unidecode(last_name) in name for name in lineup):
-            player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
-            total_xg += float(player_xg)
+        if player:
+            players_names = player.split()
+            first_name, last_name = players_names[0], players_names[-1]
+
+            if any(unidecode(first_name) in name or unidecode(last_name) in name for name in lineup):
+                player_xg = row.find("td", {"data-stat": "xg_per90"}).get_text()
+
+                if player_xg:
+                    total_xg += float(player_xg)
 
     return round(total_xg, 2)
 
@@ -306,10 +310,10 @@ def print_over_under_odds(games):
             under_odds = round(1 / odds.under_probability, 2)
             data.append([goal_amount, over_odds, under_odds])
 
-        table_headers = ["Goals", "Over", "Under"]
+        table_headers = ["Goal Amount", "Over Odds", "Under Odds"]
         table = tabulate(data, table_headers, tablefmt="fancy_grid")
 
-        print(f"          "
+        print(f"                  "
               f"{three_letter_abbreviation(game.home_team.name)} VS {three_letter_abbreviation(game.away_team.name)}")
         print(f"{table}\n")
 
